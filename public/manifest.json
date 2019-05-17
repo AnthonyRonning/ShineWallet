@@ -1,0 +1,15 @@
+{
+  "name": "Shine Wallet",
+  "start_url": "https://www.shinewallet.net",
+  "description": "A lightning wallet built on blockstack",
+  "icons": [{
+    "src": "https://www.shinewallet.net/img/logo.png",
+    "sizes": "400x400",
+    "type": "image/png"
+  },
+  {
+    "src": "https://www.shinewallet.net/img/avatar-placeholder.png",
+    "sizes": "400x400",
+    "type": "image/png"
+  }]
+}
