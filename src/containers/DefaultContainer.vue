@@ -11,6 +11,7 @@
         <b-nav-item class="px-3" to="/dashboard">Dashboard</b-nav-item>
       </b-navbar-nav>
       <b-navbar-nav class="ml-auto">
+        <DefaultHeaderDropdownAccnt/>
       </b-navbar-nav>
       <!-- <AsideToggler class="d-none d-lg-block" /> -->
       <!--<AsideToggler class="d-lg-none" mobile />-->
