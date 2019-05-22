@@ -15,6 +15,7 @@ const Widgets = () => import('@/views/Widgets')
 
 // Views - Components
 const Cards = () => import('@/views/base/Cards')
+const AddWallet = () => import('@/views/wallets/AddWallet')
 const Forms = () => import('@/views/base/Forms')
 const Switches = () => import('@/views/base/Switches')
 const Tables = () => import('@/views/base/Tables')
@@ -126,92 +127,17 @@ export default new Router({
           ]
         },
         {
-          path: 'base',
-          redirect: '/base/cards',
-          name: 'Base',
+          path: 'wallets',
+          redirect: '/wallets/add',
+          name: 'Wallets',
           component: {
             render (c) { return c('router-view') }
           },
           children: [
             {
-              path: 'cards',
-              name: 'Cards',
-              component: Cards
-            },
-            {
-              path: 'forms',
-              name: 'Forms',
-              component: Forms
-            },
-            {
-              path: 'switches',
-              name: 'Switches',
-              component: Switches
-            },
-            {
-              path: 'tables',
-              name: 'Tables',
-              component: Tables
-            },
-            {
-              path: 'tabs',
-              name: 'Tabs',
-              component: Tabs
-            },
-            {
-              path: 'breadcrumbs',
-              name: 'Breadcrumbs',
-              component: Breadcrumbs
-            },
-            {
-              path: 'carousels',
-              name: 'Carousels',
-              component: Carousels
-            },
-            {
-              path: 'collapses',
-              name: 'Collapses',
-              component: Collapses
-            },
-            {
-              path: 'jumbotrons',
-              name: 'Jumbotrons',
-              component: Jumbotrons
-            },
-            {
-              path: 'list-groups',
-              name: 'List Groups',
-              component: ListGroups
-            },
-            {
-              path: 'navs',
-              name: 'Navs',
-              component: Navs
-            },
-            {
-              path: 'navbars',
-              name: 'Navbars',
-              component: Navbars
-            },
-            {
-              path: 'paginations',
-              name: 'Paginations',
-              component: Paginations
-            },
-            {
-              path: 'popovers',
-              name: 'Popovers',
-              component: Popovers
-            },
-            {
-              path: 'progress-bars',
-              name: 'Progress Bars',
-              component: ProgressBars
-            },
-            {
-              path: 'tooltips',
-              name: 'Tooltips',
-              component: Tooltips
+              path: 'add',
+              name: 'Add Wallet',
+              component: AddWallet
             }
           ]
         },
