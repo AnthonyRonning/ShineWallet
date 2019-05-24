@@ -7,6 +7,11 @@
             <strong>Add New Lightning Wallet</strong>
           </div>
           <b-form>
+            <!-- Success Alert -->
+            <b-alert  v-model="showSuccessAlert" variant="success" dismissible>
+              Test connection successful, saving settings and adding wallet...
+            </b-alert>
+
             <!-- wallet name -->
             <b-form-group
               description="Enter a name for this wallet"
@@ -19,7 +24,7 @@
 
             <!-- lightning radio select -->
             <b-form-group
-              label="Radios"
+              label="Lightning Daemon"
               label-for="basicRadios"
               :label-cols="3"
               :horizontal="true">
@@ -45,21 +50,22 @@
 
             <!-- macaroon upload -->
             <b-form-group
-              label="Macaroon"
+              label="Admin Macaroon"
               label-for="macaroonFile"
               :label-cols="3"
               :horizontal="true">
-              <b-form-file id="macaroonFile" :plain="true" v-model="walletForm.macaroon"></b-form-file>
+              <b-form-file id="macaroonFile" :plain="true" v-model="tempMacaroonFile"></b-form-file>
             </b-form-group>
 
             <!-- certificate upload -->
+            <!--
             <b-form-group
               label="TLS Certificate"
               label-for="TLSCertificate"
               :label-cols="3"
               :horizontal="true">
               <b-form-file id="certificateFile" :plain="true" v-model="walletForm.tlsCertificate"></b-form-file>
-            </b-form-group>
+            </b-form-group> -->
 
             <!-- form footer -->
             <div slot="footer">
@@ -76,7 +82,7 @@
 </template>
 
 <script>
-  // import request from 'request'
+  import rp from 'request-promise'
 
   export default {
     name: 'addwallet',
@@ -90,9 +96,15 @@
           name: '',
           type: 'LND',
           hostAndPort: '',
-          macaroon: null,
-          tlsCertificate: null
-        }
+          macaroon: null
+        },
+        tempMacaroonFile: null,
+        showSuccessAlert: false
+      }
+    },
+    watch: {
+      tempMacaroonFile (val) {
+        this.convertAdminMacaroonToHex()
       }
     },
     methods: {
@@ -101,16 +113,15 @@
           ' Name: ' + this.walletForm.name +
           ' Type: ' + this.walletForm.type +
           ' Host: ' + this.walletForm.hostAndPort +
-          ' Macaroon: ' + this.walletForm.macaroon +
-          ' Certificate: ' + this.walletForm.tlsCertificate)
+          ' Macaroon: ' + this.walletForm.macaroon)
 
         this.testLND()
       },
       testLND () {
         console.log('testing lnd connection')
-        /*
+
         var options = {
-          url: 'https://' + this.walletForm.hostAndPort + '/v1/balance/blockchain',
+          url: 'https://' + this.walletForm.hostAndPort + '/v1/getinfo',
           // Work-around for self-signed certificates.
           rejectUnauthorized: false,
           json: true,
@@ -118,43 +129,42 @@
             'Grpc-Metadata-macaroon': this.walletForm.macaroon
           }
         }
-        request.get(options, function (error, response, body) {
+
+        rp.get(options).then((body) => {
           console.log('made request')
-          console.log(error)
-          console.log(response)
           console.log(body)
+
+          if (body) {
+            console.log('response from LND successful')
+            this.showSuccessAlert = true
+            // todo save wallet settings
+          }
         })
-
-        */
-        /*
-        const grpc = new LndGrpc({
-          host: this.walletForm.hostAndPort,
-          cert: this.walletForm.tlsCertificate,
-          macaroon: this.walletForm.macaroon,
-          waitForCert: true,
-          waitForMacaroon: true
+        .catch(function (error) {
+          console.log(error)
         })
-
-        // Establish a connection.
-        grpc.connect().then(function () {
-          console.log('connection established')
-
-          // Do something cool if we detect that the wallet is locked.
-          grpc.on(`locked`, () => console.log('wallet locked!'))
-
-          // Do something cool when the wallet gets unlocked.
-          grpc.on(`active`, () => console.log('wallet unlocked!'))
-
-          // Do something cool when the connection gets disconnected.
-          grpc.on(`disconnected`, () => console.log('disconnected from lnd!'))
-
-          // Make some api calls...
-          const { Lightning } = grpc.services
-          // Fetch current balance.
-          Lightning.walletBalance().then(function (balance) {
-            console.log('grabbed balance: ' + balance)
-          })
-        }) */
+      },
+      convertAdminMacaroonToHex () {
+        var callback = this.setFile
+        var file = this.tempMacaroonFile
+        console.log('trying to convert file:' + file)
+        var reader = new FileReader()
+        reader.readAsArrayBuffer(file)
+        reader.onload = function () {
+          var u = new Uint8Array(this.result)
+          var a = new Array(u.length)
+          var i = u.length
+          while (i--) { a[i] = (u[i] < 16 ? '0' : '') + u[i].toString(16) }
+          u = null // free memory
+          console.log(a.join(''))
+          callback(a.join(''))
+        }
+        reader.onerror = function (error) {
+          console.log('Error: ', error)
+        }
+      },
+      setFile (file) {
+        this.walletForm.macaroon = file
       }
     }
   }
