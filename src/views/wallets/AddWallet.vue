@@ -11,16 +11,10 @@
             <b-alert  v-model="showSuccessAlert" variant="success" dismissible>
               Test connection successful, saving settings and adding wallet...
             </b-alert>
-
-            <!-- wallet name -->
-            <b-form-group
-              description="Enter a name for this wallet"
-              label="Wallet Name"
-              label-for="basicName"
-              :label-cols="3"
-              :horizontal="true">
-              <b-form-input id="basicName" type="text" v-model="walletForm.name"></b-form-input>
-            </b-form-group>
+            <!-- Failure Alert -->
+            <b-alert  v-model="showFailureAlert" variant="danger" dismissible>
+              Failure connecting to wallet: {{failureReason}}
+            </b-alert>
 
             <!-- lightning radio select -->
             <b-form-group
@@ -40,7 +34,7 @@
 
             <!-- host & port -->
             <b-form-group
-              description="Enter the host & port of your node (ex. 1.1.1.1:1111)"
+              description="Enter the host & port of your node (ex. https://1.1.1.1:1111)"
               label="Host & Port"
               label-for="hostAndPort"
               :label-cols="3"
@@ -89,7 +83,7 @@
               label-for="password"
               :label-cols="3"
               :horizontal="true">
-              <b-form-input id="password" type="text" v-model="walletForm.password"></b-form-input>
+              <b-form-input id="password" type="password" v-model="walletForm.password"></b-form-input>
             </b-form-group>
 
             <!-- form footer -->
@@ -107,19 +101,20 @@
 </template>
 
 <script>
-  import rp from 'request-promise'
-  import createHmac from 'create-hmac'
+  import {Wallet} from '../../models/Wallet'
+  import {Lightning} from '../../utilities/lightning/lightning'
+  import {WalletList} from '../../models/collections/WalletList'
 
-  export default {
+export default {
     name: 'addwallet',
     data () {
       return {
+        blockstack: window.blockstack,
         walletOptions: [
           {text: 'LND', value: 'LND'},
           {text: 'C-Lightning via Spark', value: 'C-Lightning', disabled: false}
         ],
         walletForm: {
-          name: '',
           type: 'LND',
           hostAndPort: '',
           macaroon: null,
@@ -127,90 +122,71 @@
           password: ''
         },
         tempMacaroonFile: null,
-        showSuccessAlert: false
+        showSuccessAlert: false,
+        showFailureAlert: false,
+        failureReason: '',
+        walletList: new WalletList()
       }
     },
     watch: {
-      tempMacaroonFile (val) {
+      tempMacaroonFile () {
         this.convertAdminMacaroonToHex()
       }
     },
+    mounted () {
+      this.getWalletList()
+    },
     methods: {
+      getWalletList () {
+        console.log('Get wallet list')
+        this.walletList.get(this.blockstack)
+      },
       submitForm () {
         console.log('submitting form:' +
-          ' Name: ' + this.walletForm.name +
           ' Type: ' + this.walletForm.type +
           ' Host: ' + this.walletForm.hostAndPort)
 
-        if (this.walletForm.type === 'LND') {
-          this.testLND()
-        } else if (this.walletForm.type === 'C-Lightning') {
-          this.testCLightning()
-        }
+        this.testConnection()
       },
-      testLND () {
+      testConnection () {
         console.log('testing lnd connection')
+        var ln = new Lightning(this.walletForm)
 
-        var options = {
-          url: 'https://' + this.walletForm.hostAndPort + '/v1/getinfo',
-          // Work-around for self-signed certificates.
-          rejectUnauthorized: false,
-          json: true,
-          headers: {
-            'Grpc-Metadata-macaroon': this.walletForm.macaroon
-          }
-        }
-
-        rp.get(options).then((body) => {
-          console.log('made request')
+        ln.getInfo().then((body) => {
           console.log(body)
 
           if (body) {
-            console.log('response from LND successful')
+            console.log('response from lightning daemon successful')
             this.showSuccessAlert = true
-            // todo save wallet settings
-          }
-        })
-        .catch(function (error) {
-          console.log(error)
-        })
-      },
-      testCLightning () {
-        this.rpcCall('getinfo')
-      },
-      rpcCall (method, params = []) {
-        console.log('making rpc call for ' + method)
-        return fetch(this.normalizeURL('http://' + this.walletForm.hostAndPort) + '/rpc', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-Requested-With': 'shine-wallet',
-            'X-Access': this.makeAccessKey(this.walletForm.username, this.walletForm.password)
-          },
-          body: JSON.stringify({method, params})
-        })
-        .then(r => r.json())
-        .then(res => {
-          console.log(res)
-          if (res.code) {
-            throw new Error(res.message || res.code)
-          }
 
-          // todo save wallet settings
-          this.showSuccessAlert = true
-          return res
+            let newWallet = new Wallet(
+              {
+                alias: body.alias,
+                type: this.walletForm.type,
+                hostAndPort: this.walletForm.hostAndPort,
+                macaroon: this.walletForm.macaroon,
+                username: this.walletForm.username,
+                password: this.walletForm.password,
+                testnet: body.testnet
+              })
+
+            console.log(newWallet)
+            newWallet.save(this.blockstack)
+              .then(() => {
+                console.log('saved wallet info')
+                this.walletList.add(newWallet)
+                this.walletList.save(this.blockstack)
+                  .then(() => {
+                    console.log('saved wallet list info')
+                  })
+              })
+          }
         })
-      },
-      normalizeURL (endpoint) {
-        let url = new URL(endpoint.trim(), 'http://localhost:9737/')
-        return url.protocol + '//' + url.host
-      },
-      makeAccessKey (username, password) {
-        return createHmac('sha256', `${username}:${password}`)
-          .update('access-key')
-          .digest('base64')
-          .replace(/\W+/g, '')
+        .catch((error) => {
+          console.log(error)
+          this.failureReason = error.message
+          this.showFailureAlert = true
+        })
       },
       convertAdminMacaroonToHex () {
         var callback = this.setFile
