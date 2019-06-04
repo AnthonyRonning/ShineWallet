@@ -56,6 +56,7 @@ import nav from '@/_nav'
 import { Header as AppHeader, SidebarToggler, Sidebar as AppSidebar, SidebarFooter, SidebarForm, SidebarHeader, SidebarMinimizer, SidebarNav, Aside as AppAside, AsideToggler, Footer as TheFooter, Breadcrumb } from '@coreui/vue'
 import DefaultAside from './DefaultAside'
 import DefaultHeaderDropdownAccnt from './DefaultHeaderDropdownAccnt'
+import {WalletList} from '../models/collections/WalletList'
 
 export default {
   name: 'DefaultContainer',
@@ -77,7 +78,9 @@ export default {
   },
   data () {
     return {
-      nav: nav.items
+      nav: nav.items,
+      blockstack: window.blockstack,
+      walletList: new WalletList()
     }
   },
   computed: {
@@ -85,7 +88,34 @@ export default {
       return this.$route.name
     },
     list () {
-      return this.$route.matched.filter((route) => route.name || route.meta.label )
+      return this.$route.matched.filter((route) => route.name || route.meta.label)
+    }
+  },
+  created () {
+    this.loadWallets()
+  },
+  methods: {
+    loadWallets () {
+      console.log('retrieving wallet info')
+      this.walletList.get(this.blockstack)
+        .then(() => {
+          this.walletList.models.forEach((wallet) => {
+            this.addWalletToNav(wallet)
+          })
+        })
+    },
+    addWalletToNav (wallet) {
+      let walletNav = this.nav.find(o => o.name === 'Wallets')
+      let newWallet = {
+        name: this.truncate(wallet.alias),
+        url: '/wallets/view/' + wallet.id,
+        icon: 'icon-wallet'
+      }
+
+      walletNav.children.findIndex(w => w.name === newWallet.name) === -1 ? walletNav.children.unshift(newWallet) : console.log('This wallet already exists')
+    },
+    truncate (input) {
+      if (input.length > 16) { return input.substring(0, 14) + '...' } else { return input }
     }
   }
 }

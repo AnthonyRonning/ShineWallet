@@ -16,6 +16,7 @@ const Widgets = () => import('@/views/Widgets')
 // Views - Components
 const Cards = () => import('@/views/base/Cards')
 const AddWallet = () => import('@/views/wallets/AddWallet')
+const ViewWallet = () => import('@/views/wallets/ViewWallet')
 const Forms = () => import('@/views/base/Forms')
 const Switches = () => import('@/views/base/Switches')
 const Tables = () => import('@/views/base/Tables')
@@ -138,6 +139,11 @@ export default new Router({
               path: 'add',
               name: 'Add Wallet',
               component: AddWallet
+            },
+            {
+              path: 'view/:id',
+              name: 'View Wallet',
+              component: ViewWallet
             }
           ]
         },

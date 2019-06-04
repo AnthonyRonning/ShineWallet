@@ -32,19 +32,41 @@ export class Wallet extends Model {
   options () {
     return {
       methods: {
-        save: 'POST'
+        save: 'POST',
+        retrieve: 'GET'
       }
     }
   }
 
   routes () {
     return {
-      save: 'wallet.save.blockstack'
+      save: 'wallet.save.blockstack',
+      retrieve: 'wallet.retrieve.blockstack'
     }
   }
 
   save (blockstack) {
     console.log('saving file: ' + JSON.stringify(this.toJSON()))
     return blockstack.putFile(this.fileLocation, JSON.stringify(this.toJSON()), {encrypt: true})
+  }
+
+  retrieve (blockstack) {
+    return blockstack.getFile('wallets/' + this.id + '.json', {decrypt: true})
+      .then((walletJson) => {
+        if (walletJson !== null) {
+          let wallet = JSON.parse(walletJson || '[]')
+          this.id = wallet.id
+          this.alias = wallet.alias
+          this.type = wallet.type
+          this.hostAndPort = wallet.hostAndPort
+          this.macaroon = wallet.macaroon
+          this.username = wallet.username
+          this.password = wallet.password
+          this.fileLocation = wallet.fileLocation
+          this.testnet = wallet.testnet
+          this.activeChannels = wallet.activeChannels
+          this.peers = wallet.peers
+        }
+      })
   }
 }
