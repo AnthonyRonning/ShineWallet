@@ -16,7 +16,9 @@ export class Wallet extends Model {
       username: null,
       password: null,
       fileLocation: 'wallets/',
-      testnet: false
+      testnet: false,
+      activeChannels: 0,
+      peers: 0
     }
   }
 

@@ -150,7 +150,7 @@ export default {
       },
       testConnection () {
         console.log('testing lnd connection')
-        var ln = new Lightning(this.walletForm)
+        let ln = new Lightning(this.walletForm)
 
         ln.getInfo().then((body) => {
           console.log(body)
