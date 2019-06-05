@@ -4,7 +4,7 @@
       <b-row class="justify-content-center">
         <b-col md="8">
           <b-card-group>
-            <b-card no-body class="text-white bg-primary py-5 d-md-down-none" style="width:44%">
+            <b-card no-body class="text-white bg-primary p-4">
               <b-card-body class="text-center">
                 <div>
                   <h2>Log in</h2>
