@@ -175,6 +175,29 @@ export class Lnd {
       })
   }
 
+  static createInvoice (wallet, invoiceInfo) {
+    console.log('lnd createinvoice')
+
+    var requestBody = {
+      value: invoiceInfo.amount,
+      memo: invoiceInfo.description
+    }
+
+    var options = this.createOptions(wallet, 'invoices')
+    options.body = requestBody
+
+    return rp.post(options)
+      .then((body) => {
+        // console.log(body)
+
+        return body.payment_request
+      })
+      .catch(function (error) {
+        console.log(error)
+        throw error
+      })
+  }
+
   static createOptions (wallet, endpoint) {
     return {
       url: wallet.hostAndPort + '/v1/' + endpoint,

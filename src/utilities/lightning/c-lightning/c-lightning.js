@@ -177,6 +177,19 @@ export class CLightning {
       })
   }
 
+  static createInvoice (wallet, invoiceInfo) {
+    console.log('clightning pay')
+    let command = 'invoice'
+    let amountMSat = invoiceInfo.amount * MSATOSHI
+    return this.rpcCall(wallet, command, [amountMSat, invoiceInfo.label, invoiceInfo.description])
+      .then(res => {
+        return res.bolt11
+      })
+      .catch((error) => {
+        return error
+      })
+  }
+
   static rpcCall (wallet, method, params = []) {
     console.log('making rpc call for ' + method)
     return fetch(CLightningHelpers.normalizeURL(wallet.hostAndPort) + '/rpc', {

@@ -160,6 +160,67 @@
         </div>
       </b-modal>
 
+    <!-- createinvoice modal -->
+    <b-modal
+      title="Create Invoice"
+      size="lg"
+      v-model="createInvoiceModal">
+      <b-form>
+
+        <!-- invoice -->
+        <b-form-group
+          description="Enter Amount In SATS"
+          label="Amount"
+          label-for="amount"
+          :label-cols="3">
+          <b-form-input id="amount" type="text" v-model="invoiceForm.amount"></b-form-input>
+        </b-form-group>
+
+        <b-form-group
+          description="Enter Description"
+          label="Description"
+          label-for="description"
+          :label-cols="3">
+          <b-form-input id="description" type="text" v-model="invoiceForm.description"></b-form-input>
+        </b-form-group>
+
+        <b-form-group
+          v-if="this.wallet.type === 'C-Lightning'"
+          description="Enter Label"
+          label="Label"
+          label-for="label"
+          :label-cols="3">
+          <b-form-input id="label" type="text" v-model="invoiceForm.label"></b-form-input>
+        </b-form-group>
+      </b-form>
+
+      <div v-if="newPayReq">
+        <b-card>
+          <p>PayReq: {{newPayReq}}</p>
+        </b-card>
+      </div>
+
+      <div slot="modal-footer">
+        <b-button
+          variant="primary"
+          size="md"
+          class="btn btn-secondary"
+          style="margin: 5px;"
+          @click="payInvoiceModal=false"
+        >
+          Close
+        </b-button>
+        <b-button
+          variant="primary"
+          size="md"
+          class="btn btn-primary"
+          @click="createInvoice"
+        >
+          Create New Invoice
+        </b-button>
+      </div>
+    </b-modal>
+
     <!-- fab -->
     <div>
       <fab :actions="fabActions"
@@ -241,12 +302,19 @@ export default {
           }
         ],
         payInvoiceModal: false,
+        createInvoiceModal: false,
         invoice: '',
         payReqInfo: null,
         payInvoiceModalOkTitle: 'Check Invoice',
         showSuccessAlert: false,
         showFailureAlert: false,
-        payFailureReason: ''
+        payFailureReason: '',
+        invoiceForm: {
+          amount: 0,
+          description: '',
+          label: ''
+        },
+        newPayReq: null
       }
     },
     created () {
@@ -291,6 +359,12 @@ export default {
         this.showFailureAlert = false
         this.showSuccessAlert = false
         this.payFailureReason = ''
+        this.createInvoiceModal = false
+        this.payInvoiceModal = false
+        this.invoiceForm.amount = 0
+        this.invoiceForm.description = ''
+        this.invoiceForm.label = ''
+        this.newPayReq = null
       },
       retrieveWalletInfo () {
         console.log('retrieving wallet info')
@@ -357,12 +431,27 @@ export default {
             console.log(error)
           })
       },
+      createInvoice () {
+        console.log('creating invoice')
+        let ln = new Lightning(this.wallet)
+        ln.createInvoice(this.invoiceForm)
+          .then((payReq) => {
+            if (payReq) {
+              console.log('payment request: ' + payReq)
+              this.newPayReq = payReq
+            }
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+      },
       showPayModal () {
         console.log('showPayModal clicked')
         this.payInvoiceModal = true
       },
       showInvoiceModal () {
         console.log('create invoice clicked')
+        this.createInvoiceModal = true
       }
     }
   }

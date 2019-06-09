@@ -74,4 +74,15 @@ export class Lightning {
         throw new Error('Lightning Daemon not supported')
     }
   }
+
+  createInvoice (invoiceInfo) {
+    switch (this.wallet.type) {
+      case LND :
+        return Lnd.createInvoice(this.wallet, invoiceInfo)
+      case LIGHTNINGD :
+        return CLightning.createInvoice(this.wallet, invoiceInfo)
+      default :
+        throw new Error('Lightning Daemon not supported')
+    }
+  }
 }
