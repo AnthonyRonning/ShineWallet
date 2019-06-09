@@ -78,20 +78,20 @@
       </b-col>
 
       <!-- Transactions -->
-      <b-col lg="12">
+      <!-- <b-col lg="12">
         <c-table
           :table-data="walletInfo.transactions"
           :fields="transactionFields"
           caption="Transactions"></c-table>
-      </b-col>
+      </b-col> -->
 
       <!-- Peers -->
-      <b-col lg="12">
+      <!-- <b-col lg="12">
         <c-table
           :table-data="walletInfo.peers"
           :fields="peerFields"
           caption="Peers"></c-table>
-      </b-col>
+      </b-col> -->
     </b-row>
   </div>
 </template>
