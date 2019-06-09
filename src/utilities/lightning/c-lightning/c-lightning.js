@@ -1,5 +1,8 @@
 import {CLightningHelpers} from './helpers'
 import {Channel} from '../../../models/LNWrappers/Channel'
+import {PayReq} from '../../../models/LNWrappers/PayReq'
+
+const MSATOSHI = 1000
 
 export class CLightning {
   static getInfo (wallet) {
@@ -67,7 +70,7 @@ export class CLightning {
         .then(res => {
           // console.log(res)
           let channelInfo = res.peers[0].channels[0]
-          channel.local_balance = channelInfo.msatoshi_to_us / 1000
+          channel.local_balance = channelInfo.msatoshi_to_us / MSATOSHI
           channel.remote_balance = channel.capacity - channel.local_balance
           // console.log(channel)
         })
@@ -131,6 +134,47 @@ export class CLightning {
     }
 
     return totalAmount
+  }
+
+  static decodePayReq (wallet, bolt11) {
+    console.log('clightning decodePayReq')
+    let command = 'decodepay'
+    return this.rpcCall(wallet, command, [bolt11])
+      .then(res => {
+        return this.decodePayReqToPayReq(res)
+      })
+      .catch((error) => {
+        return error
+      })
+  }
+
+  static decodePayReqToPayReq (body) {
+    let payReq = new PayReq()
+    payReq.amount = body.msatoshi / MSATOSHI
+    payReq.description = body.description
+    payReq.destination = body.payee
+
+    return payReq
+  }
+
+  static pay (wallet, bolt11) {
+    console.log('clightning pay')
+    let command = 'pay'
+    return this.rpcCall(wallet, command, [bolt11])
+      .then(res => {
+        if (res.status && res.status === 'complete') {
+          return null
+        } else if (res.status) {
+          return res.status
+        } else if (res.message) {
+          return res.message
+        } else {
+          return 'Unknown Error'
+        }
+      })
+      .catch((error) => {
+        return error
+      })
   }
 
   static rpcCall (wallet, method, params = []) {
