@@ -1,6 +1,6 @@
 {
   "name": "ShineWallet",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A Lightning Wallet Built on Blockstack",
   "author": "Anthony Ronning <cycryptr@protonmail.com>",
   "private": true,
