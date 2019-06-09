@@ -30,4 +30,26 @@ export class Lightning {
         throw new Error('Lightning Daemon not supported')
     }
   }
+
+  walletBalance () {
+    switch (this.wallet.type) {
+      case LND :
+        return Lnd.walletBalance(this.wallet)
+      case LIGHTNINGD :
+        return CLightning.walletBalance(this.wallet)
+      default :
+        throw new Error('Lightning Daemon not supported')
+    }
+  }
+
+  channelBalance () {
+    switch (this.wallet.type) {
+      case LND :
+        return Lnd.channelBalance(this.wallet)
+      case LIGHTNINGD :
+        return CLightning.channelBalance(this.wallet)
+      default :
+        throw new Error('Lightning Daemon not supported')
+    }
+  }
 }

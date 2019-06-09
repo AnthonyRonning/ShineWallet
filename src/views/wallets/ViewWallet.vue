@@ -196,6 +196,8 @@ export default {
       },
       retrieveAllWalletMetadata () {
         this.retrieveChannels()
+        this.retrieveWalletBalance()
+        this.retrieveChannelBalance()
       },
       retrieveChannels () {
         console.log('retrieving channel info')
@@ -204,6 +206,24 @@ export default {
           .then((channels) => {
             // console.log(channels)
             this.walletInfo.channels = channels
+          })
+      },
+      retrieveWalletBalance () {
+        console.log('retrieving walletbalance info')
+        let ln = new Lightning(this.wallet)
+        ln.walletBalance()
+          .then((amount) => {
+            // console.log(amount)
+            this.walletInfo.onChainSat = amount
+          })
+      },
+      retrieveChannelBalance () {
+        console.log('retrieving channelbalance info')
+        let ln = new Lightning(this.wallet)
+        ln.channelBalance()
+          .then((amount) => {
+            // console.log(amount)
+            this.walletInfo.offChainSat = amount
           })
       }
     }

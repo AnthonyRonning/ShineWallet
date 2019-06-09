@@ -84,6 +84,44 @@ export class Lnd {
     }
   }
 
+  static walletBalance (wallet) {
+    console.log('lnd walletbalance')
+
+    var options = this.createOptions(wallet, 'balance/blockchain')
+
+    return rp.get(options)
+      .then((body) => {
+        // console.log(body)
+
+        if (body) {
+          return body.confirmed_balance
+        }
+      })
+      .catch(function (error) {
+        console.log(error)
+        throw error
+      })
+  }
+
+  static channelBalance (wallet) {
+    console.log('lnd channelbalance')
+
+    var options = this.createOptions(wallet, 'balance/channels')
+
+    return rp.get(options)
+      .then((body) => {
+        // console.log(body)
+
+        if (body) {
+          return body.balance
+        }
+      })
+      .catch(function (error) {
+        console.log(error)
+        throw error
+      })
+  }
+
   static createOptions (wallet, endpoint) {
     return {
       url: wallet.hostAndPort + '/v1/' + endpoint,

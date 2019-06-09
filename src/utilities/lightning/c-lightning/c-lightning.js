@@ -89,6 +89,50 @@ export class CLightning {
     }
   }
 
+  static walletBalance (wallet) {
+    console.log('clightning walletBalance')
+    let command = 'listfunds'
+    return this.rpcCall(wallet, command)
+      .then(res => {
+        return this.walletBalanceToTotalAmount(wallet, res)
+      })
+      .catch((error) => {
+        return error
+      })
+  }
+
+  static walletBalanceToTotalAmount (wallet, body) {
+    let totalAmount = 0
+
+    if (body.outputs) {
+      totalAmount = _.sumBy(body.outputs, 'value')
+    }
+
+    return totalAmount
+  }
+
+  static channelBalance (wallet) {
+    console.log('clightning channelBalance')
+    let command = 'listfunds'
+    return this.rpcCall(wallet, command)
+      .then(res => {
+        return this.channelBalanceToTotalAmount(wallet, res)
+      })
+      .catch((error) => {
+        return error
+      })
+  }
+
+  static channelBalanceToTotalAmount (wallet, body) {
+    let totalAmount = 0
+
+    if (body.channels) {
+      totalAmount = _.sumBy(body.channels, 'channel_sat')
+    }
+
+    return totalAmount
+  }
+
   static rpcCall (wallet, method, params = []) {
     console.log('making rpc call for ' + method)
     return fetch(CLightningHelpers.normalizeURL(wallet.hostAndPort) + '/rpc', {
