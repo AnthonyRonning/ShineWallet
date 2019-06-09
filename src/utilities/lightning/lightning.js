@@ -52,4 +52,37 @@ export class Lightning {
         throw new Error('Lightning Daemon not supported')
     }
   }
+
+  decodePayReq (bolt11) {
+    switch (this.wallet.type) {
+      case LND :
+        return Lnd.decodePayReq(this.wallet, bolt11)
+      case LIGHTNINGD :
+        return CLightning.decodePayReq(this.wallet, bolt11)
+      default :
+        throw new Error('Lightning Daemon not supported')
+    }
+  }
+
+  pay (bolt11) {
+    switch (this.wallet.type) {
+      case LND :
+        return Lnd.pay(this.wallet, bolt11)
+      case LIGHTNINGD :
+        return CLightning.pay(this.wallet, bolt11)
+      default :
+        throw new Error('Lightning Daemon not supported')
+    }
+  }
+
+  createInvoice (invoiceInfo) {
+    switch (this.wallet.type) {
+      case LND :
+        return Lnd.createInvoice(this.wallet, invoiceInfo)
+      case LIGHTNINGD :
+        return CLightning.createInvoice(this.wallet, invoiceInfo)
+      default :
+        throw new Error('Lightning Daemon not supported')
+    }
+  }
 }

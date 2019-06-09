@@ -93,6 +93,142 @@
           caption="Peers"></c-table>
       </b-col> -->
     </b-row>
+
+    <!-- showPayModal invoice modal -->
+      <b-modal
+        title="Pay Invoice"
+        size="lg"
+        v-model="payInvoiceModal">
+
+        <!-- Success Alert -->
+        <b-alert  v-model="showSuccessAlert" variant="success" dismissible>
+          Payment Successful!
+        </b-alert>
+        <!-- Failure Alert -->
+        <b-alert  v-model="showFailureAlert" variant="danger" dismissible>
+          Failure sending payment: {{payFailureReason}}
+        </b-alert>
+
+        <b-form>
+
+          <!-- invoice -->
+          <b-form-group
+            description="Enter Bolt11 Invoice"
+            label="Invoice"
+            label-for="invoice"
+            :label-cols="3">
+            <b-form-input id="invoice" type="text" v-model="invoice"></b-form-input>
+          </b-form-group>
+        </b-form>
+
+        <div v-if="payReqInfo">
+          <b-card>
+            <p>Amount: {{payReqInfo.amount}} SATS</p>
+            <p>Destination: {{payReqInfo.destination}}</p>
+            <p>Description: {{payReqInfo.description}}</p>
+          </b-card>
+        </div>
+
+        <div slot="modal-footer">
+          <b-button
+            variant="primary"
+            size="md"
+            class="btn btn-secondary"
+            style="margin: 5px;"
+            @click="payInvoiceModal=false"
+          >
+            Close
+          </b-button>
+          <b-button
+            v-if="payInvoiceModalOkTitle === 'Check Invoice'"
+            variant="primary"
+            size="md"
+            class="btn btn-primary"
+            @click="decodeInvoice"
+          >
+            {{payInvoiceModalOkTitle}}
+          </b-button>
+          <b-button
+            v-if="payInvoiceModalOkTitle === 'Pay Invoice'"
+            variant="primary"
+            size="md"
+            class="btn btn-primary"
+            @click="payInvoice"
+          >
+            {{payInvoiceModalOkTitle}}
+          </b-button>
+        </div>
+      </b-modal>
+
+    <!-- createinvoice modal -->
+    <b-modal
+      title="Create Invoice"
+      size="lg"
+      v-model="createInvoiceModal">
+      <b-form>
+
+        <!-- invoice -->
+        <b-form-group
+          description="Enter Amount In SATS"
+          label="Amount"
+          label-for="amount"
+          :label-cols="3">
+          <b-form-input id="amount" type="text" v-model="invoiceForm.amount"></b-form-input>
+        </b-form-group>
+
+        <b-form-group
+          description="Enter Description"
+          label="Description"
+          label-for="description"
+          :label-cols="3">
+          <b-form-input id="description" type="text" v-model="invoiceForm.description"></b-form-input>
+        </b-form-group>
+
+        <b-form-group
+          v-if="this.wallet.type === 'C-Lightning'"
+          description="Enter Label"
+          label="Label"
+          label-for="label"
+          :label-cols="3">
+          <b-form-input id="label" type="text" v-model="invoiceForm.label"></b-form-input>
+        </b-form-group>
+      </b-form>
+
+      <div v-if="newPayReq">
+        <b-card>
+          <p>PayReq: {{newPayReq}}</p>
+        </b-card>
+      </div>
+
+      <div slot="modal-footer">
+        <b-button
+          variant="primary"
+          size="md"
+          class="btn btn-secondary"
+          style="margin: 5px;"
+          @click="payInvoiceModal=false"
+        >
+          Close
+        </b-button>
+        <b-button
+          variant="primary"
+          size="md"
+          class="btn btn-primary"
+          @click="createInvoice"
+        >
+          Create New Invoice
+        </b-button>
+      </div>
+    </b-modal>
+
+    <!-- fab -->
+    <div>
+      <fab :actions="fabActions"
+           bg-color="#4dbd74"
+           @invoice="showInvoiceModal"
+           @showPayModal="showPayModal"
+      ></fab>
+    </div>
   </div>
 </template>
 
@@ -101,11 +237,13 @@
   import {Wallet} from '../../models/Wallet'
   import {Lightning} from '../../utilities/lightning/lightning'
   import cTable from '../../views/base/Table.vue'
+  import fab from 'vue-fab'
 
 export default {
     name: 'ViewWallet',
     components: {
-      cTable
+      cTable,
+      fab
     },
     data: function () {
       return {
@@ -152,7 +290,31 @@ export default {
         ],
         walletId: '',
         activeChannels: 0,
-        peers: 0
+        peers: 0,
+        fabActions: [
+          {
+            name: 'invoice',
+            icon: 'save_alt'
+          },
+          {
+            name: 'showPayModal',
+            icon: 'send'
+          }
+        ],
+        payInvoiceModal: false,
+        createInvoiceModal: false,
+        invoice: '',
+        payReqInfo: null,
+        payInvoiceModalOkTitle: 'Check Invoice',
+        showSuccessAlert: false,
+        showFailureAlert: false,
+        payFailureReason: '',
+        invoiceForm: {
+          amount: 0,
+          description: '',
+          label: ''
+        },
+        newPayReq: null
       }
     },
     created () {
@@ -189,6 +351,20 @@ export default {
           .catch((error) => {
             console.log(error)
           })
+
+        // reset variables
+        this.invoice = ''
+        this.payReqInfo = null
+        this.payInvoiceModalOkTitle = 'Check Invoice'
+        this.showFailureAlert = false
+        this.showSuccessAlert = false
+        this.payFailureReason = ''
+        this.createInvoiceModal = false
+        this.payInvoiceModal = false
+        this.invoiceForm.amount = 0
+        this.invoiceForm.description = ''
+        this.invoiceForm.label = ''
+        this.newPayReq = null
       },
       retrieveWalletInfo () {
         console.log('retrieving wallet info')
@@ -225,6 +401,57 @@ export default {
             // console.log(amount)
             this.walletInfo.offChainSat = amount
           })
+      },
+      decodeInvoice () {
+        let ln = new Lightning(this.wallet)
+        ln.decodePayReq(this.invoice)
+          .then((payReqInfo) => {
+            this.payReqInfo = payReqInfo
+            this.payInvoiceModalOkTitle = 'Pay Invoice'
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+      },
+      payInvoice () {
+        console.log('paying invoice: ' + this.invoice)
+        let ln = new Lightning(this.wallet)
+        ln.pay(this.invoice)
+          .then((payError) => {
+            if (payError) {
+              console.log('payment error: ' + payError)
+              this.payFailureReason = payError
+              this.showFailureAlert = true
+            } else {
+              console.log('payment successful')
+              this.showSuccessAlert = true
+            }
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+      },
+      createInvoice () {
+        console.log('creating invoice')
+        let ln = new Lightning(this.wallet)
+        ln.createInvoice(this.invoiceForm)
+          .then((payReq) => {
+            if (payReq) {
+              console.log('payment request: ' + payReq)
+              this.newPayReq = payReq
+            }
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+      },
+      showPayModal () {
+        console.log('showPayModal clicked')
+        this.payInvoiceModal = true
+      },
+      showInvoiceModal () {
+        console.log('create invoice clicked')
+        this.createInvoiceModal = true
       }
     }
   }
@@ -234,5 +461,15 @@ export default {
   /* IE fix */
   #card-chart-01, #card-chart-02 {
     width: 100% !important;
+  }
+  i.md-36.material-icons {
+    margin-left: 0px !important;
+  }
+  div#bottom-right-wrapper.fab-wrapper {
+    right: 2vw !important;
+    bottom: 4vw !important;
+  }
+  .modal-content {
+    margin-top: 60px;
   }
 </style>
