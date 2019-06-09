@@ -18,7 +18,9 @@ export class Wallet extends Model {
       fileLocation: 'wallets/',
       testnet: false,
       activeChannels: 0,
-      peers: 0
+      peers: 0,
+      pubkey: null,
+      short_channel_id: null
     }
   }
 
@@ -66,6 +68,8 @@ export class Wallet extends Model {
           this.testnet = wallet.testnet
           this.activeChannels = wallet.activeChannels
           this.peers = wallet.peers
+          this.pubkey = wallet.pubkey
+          this.short_channel_id = wallet.short_channel_id
         }
       })
   }

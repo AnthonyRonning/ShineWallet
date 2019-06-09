@@ -26,7 +26,7 @@
             <i class="icon-cloud-upload"></i>
           </div>
           <div class="h4 mb-0">{{wallet.activeChannels}}</div>
-          <small class="text-muted text-uppercase font-weight-bold">Active Channels</small>
+          <small class="text-muted text-uppercase font-weight-bold">Channels</small>
         </b-card>
       </b-col>
       <b-col sm="6" md="2">
@@ -44,23 +44,32 @@
         <b-card header="Channels">
           <b-row>
             <b-col v-for="channel in walletInfo.channels" sm="6" md="4">
-              <b-card :header="channel.name" border-variant="success">
+              <b-card :header="channel.alias" :border-variant="channel.active ? 'success' : 'secondary'">
+                <div slot="header">
+                  {{channel.alias}}
+                  <b-badge v-if="channel.active" variant="success" class="float-right">Active</b-badge>
+                  <b-badge v-if="!channel.active" variant="secondary" class="float-right">InActive</b-badge>
+                </div>
                 Capacity: {{channel.capacity}} SATS
                 <b-progress class="mt-1" :max="channel.capacity" show-value>
                   <b-progress-bar
                     v-b-tooltip.hover
                     title="Outbound Capacity"
-                    :value="channel.localBalance"
+                    :value="channel.local_balance"
                     variant="success"></b-progress-bar>
                   <b-progress-bar
                     v-b-tooltip.hover
                     title="Inbound Capacity"
-                    :value="channel.remoteBalance"
+                    :value="channel.remote_balance"
                     variant="warning"></b-progress-bar>
                 </b-progress>
 
                 <div class="text-center">
-                  <b-button class="active mt-3" pressed variant="danger" aria-pressed="true">Close Channel</b-button>
+                  <b-button
+                    v-if="channel.active"
+                    class="active mt-3"
+                    pressed variant="danger"
+                    aria-pressed="true">Close Channel</b-button>
                 </div>
               </b-card>
             </b-col>
@@ -105,29 +114,7 @@ export default {
         walletInfo: {
           onChainSat: 0, // todo
           offChainSat: 0, // todo
-          channels: [ // todo
-            {
-              name: 'ACINQ',
-              capacity: 10000,
-              remoteBalance: 1000,
-              localBalance: 9000,
-              status: 'open'
-            },
-            {
-              name: 'Lightning Labs',
-              capacity: 30000,
-              remoteBalance: 2000,
-              localBalance: 28000,
-              status: 'open'
-            },
-            {
-              name: 'Open Node',
-              capacity: 10000,
-              remoteBalance: 9000,
-              localBalance: 1000,
-              status: 'pending'
-            }
-          ],
+          channels: [],
           transactions: [ // todo
             {
               to: 'Sent to',
@@ -172,30 +159,51 @@ export default {
       this.walletId = this.$route.params.id
     },
     mounted () {
-      this.retrieveWalletInfo()
+      this.initializeNewWallet()
     },
     beforeRouteUpdate (to, from, next) {
       console.log('route changed to ' + to.params.id)
       this.walletId = to.params.id
       this.wallet = new Wallet({id: this.walletId})
-      this.retrieveWalletInfo()
+      this.initializeNewWallet()
       next()
     },
     methods: {
-      retrieveWalletInfo () {
-        console.log('retrieving wallet info')
-        this.wallet.retrieve(this.blockstack)
+      initializeNewWallet () {
+        this.retrieveWalletInfo()
           .then(() => {
+            console.log('retrieved wallet info')
+            // console.log(this.wallet)
             let ln = new Lightning(this.wallet)
             ln.getInfo()
               .then((body) => {
-                console.log(body)
+                // console.log(body)
                 this.wallet.activeChannels = body.num_active_channels
                 this.wallet.peers = body.num_peers
+
+                this.wallet.pubkey = body.pubkey
+
+                this.retrieveAllWalletMetadata()
               })
           })
           .catch((error) => {
             console.log(error)
+          })
+      },
+      retrieveWalletInfo () {
+        console.log('retrieving wallet info')
+        return this.wallet.retrieve(this.blockstack)
+      },
+      retrieveAllWalletMetadata () {
+        this.retrieveChannels()
+      },
+      retrieveChannels () {
+        console.log('retrieving channel info')
+        let ln = new Lightning(this.wallet)
+        ln.listChannels()
+          .then((channels) => {
+            // console.log(channels)
+            this.walletInfo.channels = channels
           })
       }
     }
