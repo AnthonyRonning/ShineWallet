@@ -1,6 +1,7 @@
 import rp from 'request-promise'
 import {Channel} from '../../../models/LNWrappers/Channel'
 import {PayReq} from '../../../models/LNWrappers/PayReq'
+import {Transaction} from '../../../models/LNWrappers/Transaction'
 
 export class Lnd {
   static getInfo (wallet) {
@@ -196,6 +197,96 @@ export class Lnd {
         console.log(error)
         throw error
       })
+  }
+
+  static async listAllTransactions (wallet) {
+    console.log('lnd listAllTransactions')
+    let transactionList = []
+
+    transactionList = transactionList.concat(await this.listInvoices(wallet))
+    transactionList = transactionList.concat(await this.listPayments(wallet))
+
+    transactionList.sort(function compare (a, b) {
+      let dateA = new Date(a.date)
+      let dateB = new Date(b.date)
+      return dateB - dateA
+    })
+
+    return transactionList
+  }
+
+  static listInvoices (wallet) {
+    console.log('lnd listAllTransactions')
+
+    var options = this.createOptions(wallet, 'invoices')
+
+    return rp.get(options)
+      .then((body) => {
+        // console.log(body)
+
+        if (body) {
+          return this.listInvoicesToTransactionList(body.invoices)
+        }
+      })
+      .catch(function (error) {
+        console.log(error)
+        throw error
+      })
+  }
+
+  static listInvoicesToTransactionList (invoices) {
+    let transactionList = []
+    let filteredInvoices = invoices.filter((i) => { return i.state === 'SETTLED' })
+
+    filteredInvoices.forEach(function (invoice) {
+      let newTransaction = new Transaction()
+      newTransaction.type = 'LIGHTNING'
+      newTransaction.incoming = true
+      newTransaction.date = new Date(invoice.settle_date * 1000).toUTCString()
+      newTransaction.description = invoice.memo
+      newTransaction.amount = invoice.amt_paid_sat
+      newTransaction.status = 'PAID'
+
+      transactionList.push(newTransaction)
+    })
+
+    return transactionList
+  }
+
+  static listPayments (wallet) {
+    console.log('lnd listAllTransactions')
+
+    var options = this.createOptions(wallet, 'payments')
+
+    return rp.get(options)
+      .then((body) => {
+        // console.log(body)
+
+        if (body) {
+          return this.listPaymentsToTransactionList(body.payments)
+        }
+      })
+      .catch(function (error) {
+        console.log(error)
+        throw error
+      })
+  }
+
+  static listPaymentsToTransactionList (payments) {
+    let transactionList = []
+
+    payments.forEach(function (payment) {
+      let newTransaction = new Transaction()
+      newTransaction.type = 'LIGHTNING'
+      newTransaction.incoming = false
+      newTransaction.date = new Date(payment.creation_date * 1000).toUTCString()
+      newTransaction.amount = 0 - payment.value_sat
+      newTransaction.status = 'PAID'
+
+      transactionList.push(newTransaction)
+    })
+
+    return transactionList
   }
 
   static createOptions (wallet, endpoint) {

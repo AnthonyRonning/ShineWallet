@@ -78,12 +78,12 @@
       </b-col>
 
       <!-- Transactions -->
-      <!-- <b-col lg="12">
+      <b-col lg="12">
         <c-table
           :table-data="walletInfo.transactions"
           :fields="transactionFields"
           caption="Transactions"></c-table>
-      </b-col> -->
+      </b-col>
 
       <!-- Peers -->
       <!-- <b-col lg="12">
@@ -279,8 +279,7 @@ export default {
           ]
         },
         transactionFields: [
-          {key: 'to', sortable: true},
-          {key: 'from', sortable: true},
+          {key: 'type', sortable: true},
           {key: 'amount', sortable: true},
           {key: 'date', sortable: true}
         ],
@@ -374,6 +373,7 @@ export default {
         this.retrieveChannels()
         this.retrieveWalletBalance()
         this.retrieveChannelBalance()
+        this.retrieveTransactions()
       },
       retrieveChannels () {
         console.log('retrieving channel info')
@@ -400,6 +400,15 @@ export default {
           .then((amount) => {
             // console.log(amount)
             this.walletInfo.offChainSat = amount
+          })
+      },
+      retrieveTransactions () {
+        console.log('retrieving transactions')
+        let ln = new Lightning(this.wallet)
+        ln.listAllTransactions()
+          .then((transactions) => {
+            console.log(transactions)
+            this.walletInfo.transactions = transactions
           })
       },
       decodeInvoice () {

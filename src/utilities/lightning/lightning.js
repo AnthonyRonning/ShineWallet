@@ -85,4 +85,15 @@ export class Lightning {
         throw new Error('Lightning Daemon not supported')
     }
   }
+
+  listAllTransactions () {
+    switch (this.wallet.type) {
+      case LND :
+        return Lnd.listAllTransactions(this.wallet)
+      case LIGHTNINGD :
+        return CLightning.listAllTransactions(this.wallet)
+      default :
+        throw new Error('Lightning Daemon not supported')
+    }
+  }
 }

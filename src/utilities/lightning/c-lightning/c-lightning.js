@@ -1,6 +1,7 @@
 import {CLightningHelpers} from './helpers'
 import {Channel} from '../../../models/LNWrappers/Channel'
 import {PayReq} from '../../../models/LNWrappers/PayReq'
+import {Transaction} from '../../../models/LNWrappers/Transaction'
 
 const MSATOSHI = 1000
 
@@ -188,6 +189,82 @@ export class CLightning {
       .catch((error) => {
         return error
       })
+  }
+
+  static async listAllTransactions (wallet) {
+    console.log('clightning listAllTransactions')
+    let transactionList = []
+
+    transactionList = transactionList.concat(await this.listInvoices(wallet))
+    transactionList = transactionList.concat(await this.listPayments(wallet))
+
+    transactionList.sort(function compare (a, b) {
+      let dateA = new Date(a.date)
+      let dateB = new Date(b.date)
+      return dateB - dateA
+    })
+
+    return transactionList
+  }
+
+  static listInvoices (wallet) {
+    console.log('clightning listinvoices')
+    let command = 'listinvoices'
+    return this.rpcCall(wallet, command)
+      .then(res => {
+        return this.listInvoicesToTransactionList(res.invoices)
+      })
+      .catch((error) => {
+        return error
+      })
+  }
+
+  static listInvoicesToTransactionList (invoices) {
+    let transactionList = []
+    let filteredInvoices = invoices.filter((i) => { return i.status === 'paid' })
+
+    filteredInvoices.forEach(function (invoice) {
+      let newTransaction = new Transaction()
+      newTransaction.type = 'LIGHTNING'
+      newTransaction.incoming = true
+      newTransaction.date = new Date(invoice.paid_at * 1000).toUTCString()
+      newTransaction.description = invoice.description
+      newTransaction.amount = invoice.msatoshi / MSATOSHI
+      newTransaction.status = 'PAID'
+
+      transactionList.push(newTransaction)
+    })
+
+    return transactionList
+  }
+
+  static listPayments (wallet) {
+    console.log('clightning listpayments')
+    let command = 'listpayments'
+    return this.rpcCall(wallet, command)
+      .then(res => {
+        return this.listPaymentsToTransactionList(res.payments)
+      })
+      .catch((error) => {
+        return error
+      })
+  }
+
+  static listPaymentsToTransactionList (payments) {
+    let transactionList = []
+
+    payments.forEach(function (payment) {
+      let newTransaction = new Transaction()
+      newTransaction.type = 'LIGHTNING'
+      newTransaction.incoming = false
+      newTransaction.date = new Date(payment.created_at * 1000).toUTCString()
+      newTransaction.amount = 0 - payment.msatoshi / MSATOSHI
+      newTransaction.status = 'PAID'
+
+      transactionList.push(newTransaction)
+    })
+
+    return transactionList
   }
 
   static rpcCall (wallet, method, params = []) {
