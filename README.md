@@ -1,6 +1,8 @@
 # ShineWallet
 
-> A simple Vue.js lightning wallet built for the decentralized web.
+> A Vue.js lightning wallet built for the decentralized web.
+
+https://www.youtube.com/watch?v=zX9m1iCFZVw
 
 ## Build Setup
 
