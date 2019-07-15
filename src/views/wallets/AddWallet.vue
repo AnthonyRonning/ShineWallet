@@ -105,7 +105,7 @@
       </b-col>
     </b-row>
 
-    <!-- createinvoice modal -->
+    <!-- Adding wallet modal -->
     <b-modal
       title="Adding Wallets"
       size="lg"
@@ -172,8 +172,9 @@ export default {
       return {
         blockstack: window.blockstack,
         walletOptions: [
-          {text: 'LND', value: 'LND'},
-          {text: 'C-Lightning via Spark', value: 'C-Lightning', disabled: false}
+          {text: 'LND', value: 'LND', disabled: false},
+          {text: 'C-Lightning via Spark', value: 'C-Lightning', disabled: false},
+          {text: 'Buy a node from ShineWallet (Coming soon)', value: 'TBD', disabled: true}
         ],
         walletForm: {
           type: 'LND',
