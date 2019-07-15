@@ -37,12 +37,13 @@
     </div>
     <TheFooter>
       <!--footer-->
-      <!--
+
       <div>
-        <a href="https://coreui.io">CoreUI</a>
-        <span class="ml-1">&copy; 2018 creativeLabs.</span>
+        <a href="https://github.com/AnthonyRonning/ShineWallet">
+          <i class="fa fa-github"></i>
+        </a>
       </div>
-      -->
+
       <div class="ml-auto">
         <span class="mr-1">Made with ⚡️ by</span>
         <a href="https://twitter.com/cycryptr" target="_blank">Cycryptr</a>
