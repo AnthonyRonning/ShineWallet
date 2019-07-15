@@ -241,6 +241,9 @@ export default {
                 this.walletList.save(this.blockstack)
                   .then(() => {
                     console.log('saved wallet list info')
+
+                    // refresh the page
+                    this.$router.push('/wallets/view/' + newWallet.id)
                   })
               })
           }
