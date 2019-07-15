@@ -29,8 +29,15 @@
                                   stacked
                                   v-model="walletForm.type">
               </b-form-radio-group>
-            </b-form-group>
 
+              <!-- about connecting -->
+              <a
+                style="font-size: small"
+                @click="walletMoreInfoModal = true"
+                href="#">
+                [More Info]
+              </a>
+            </b-form-group>
 
             <!-- host & port -->
             <b-form-group
@@ -97,6 +104,60 @@
         </b-card>
       </b-col>
     </b-row>
+
+    <!-- createinvoice modal -->
+    <b-modal
+      title="Adding Wallets"
+      size="lg"
+      v-model="walletMoreInfoModal">
+      <b>LND</b>
+      <hr />
+      <p>
+        <u>CORS Problems</u>
+      </p>
+      <p>
+        To connect to your node via a webbrowser, CORS must be enabled and
+        "https://shinewallet.net" must be added to the list of accessible addresses.
+      </p>
+      <p>
+        At this time, LND does not have the capability to do so, but work is underway.
+        Please disable your browsers CORS check to use LND for the time being.
+        For chome, visit this <a href="https://alfilatov.com/posts/run-chrome-without-cors/">
+        link to learn more</a>
+      </p>
+      <p>
+        <u>SSL Problems</u>
+      </p>
+      <p>
+        SSL Certificate errors might occur when connecting for the first time,
+        or after awhile. Please accept your LND certificate in another browser tab
+        by opening a new tab, navigating to your node's address, and clicking continue.
+      </p>
+
+
+      <b>C-Lightning w/ Spark</b>
+      <hr />
+      <p>
+        <u>CORS Problems</u>
+      </p>
+      <p>
+        An upcoming release of Spark will include the option to add CORS.
+      </p>
+      <p>
+        To use shine with spark, run spark with '--allow-cors https://shinewalletnet'
+      </p>
+
+      <div slot="modal-footer">
+        <b-button
+          variant="primary"
+          size="md"
+          class="btn btn-primary"
+          @click="walletMoreInfoModal = false"
+        >
+          Okay
+        </b-button>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -125,7 +186,8 @@ export default {
         showSuccessAlert: false,
         showFailureAlert: false,
         failureReason: '',
-        walletList: new WalletList()
+        walletList: new WalletList(),
+        walletMoreInfoModal: false
       }
     },
     watch: {
