@@ -1,7 +1,7 @@
 <template>
   <div class="animated fadeIn">
     <b-row>
-      <b-col sm="6" md="2">
+      <b-col sm="6" md="6">
         <b-card class="text-white bg-success">
           <div class="h1 text-muted text-right mb-4">
             <i class="icon-user-follow"></i>
@@ -10,7 +10,7 @@
           <small class="text-muted text-uppercase font-weight-bold">Total Active Channels</small>
         </b-card>
       </b-col>
-      <b-col sm="6" md="2">
+      <b-col sm="6" md="6">
         <b-card class="text-white bg-info">
           <div class="h1 text-muted text-right mb-4">
             <i class="icon-people"></i>

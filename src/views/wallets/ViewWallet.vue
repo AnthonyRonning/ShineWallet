@@ -2,7 +2,7 @@
   <div class="animated fadeIn">
     <!-- Header Info Panels -->
     <b-row>
-      <b-col sm="6" md="2">
+      <b-col sm="6" md="3">
         <b-card class="text-white bg-primary">
           <div class="h1 text-muted text-right mb-4">
             <i class="fa fa-btc"></i>
@@ -11,7 +11,7 @@
           <small class="text-muted text-uppercase font-weight-bold">Funds On Chain (sats)</small>
         </b-card>
       </b-col>
-      <b-col sm="6" md="2">
+      <b-col sm="6" md="3">
         <b-card class="text-white bg-primary">
           <div class="h1 text-muted text-right mb-4">
             <i class="icon-energy"></i>
@@ -20,7 +20,7 @@
           <small class="text-muted text-uppercase font-weight-bold">Funds Off Chain (sats)</small>
         </b-card>
       </b-col>
-      <b-col sm="6" md="2">
+      <b-col sm="6" md="3">
         <b-card class="text-white bg-primary">
           <div class="h1 text-muted text-right mb-4">
             <i class="icon-cloud-upload"></i>
@@ -29,7 +29,7 @@
           <small class="text-muted text-uppercase font-weight-bold">Channels</small>
         </b-card>
       </b-col>
-      <b-col sm="6" md="2">
+      <b-col sm="6" md="3">
         <b-card class="text-white bg-primary">
           <div class="h1 text-muted text-right mb-4">
             <i class="icon-people"></i>
