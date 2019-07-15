@@ -20,6 +20,39 @@
         </b-card>
       </b-col>
     </b-row>
+
+    <!-- welcome modal -->
+    <b-modal
+      title="Welcome!"
+      size="md"
+      v-model="showWelcome"
+      @hidden="setViewedWelcome">
+      <p>
+        Thank you for trying out Shine Wallet!
+      </p>
+
+      <p>
+        This is an alpha release until LND & C-Lightning's Spark Server
+        implement CORS - this work is currently underway.
+        Until then, I recommend only connecting to testnet wallets with CORS
+        disabled in your browser.
+      </p>
+
+      <p>
+        Hope you enjoy Shine Wallet! Any issues or recommendations can be submitted
+        <a href="https://github.com/AnthonyRonning/ShineWallet/issues">here</a>.
+      </p>
+      <div slot="modal-footer">
+        <b-button
+          variant="primary"
+          size="md"
+          class="btn btn-primary"
+          @click="setViewedWelcome"
+        >
+          Okay
+        </b-button>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -37,13 +70,15 @@ export default {
       blockstack: window.blockstack,
       walletList: new WalletList(),
       totalActiveChannels: 0,
-      totalPeers: 0
+      totalPeers: 0,
+      showWelcome: false
     }
   },
   computed: {
   },
   mounted () {
     this.retrieveWalletInfo()
+    this.checkIfViewedWelcome()
   },
   methods: {
     retrieveWalletInfo () {
@@ -63,6 +98,16 @@ export default {
               })
           })
         })
+    },
+    checkIfViewedWelcome () {
+      const viewedWelcome = localStorage.getItem('welcome')
+      if (!viewedWelcome) {
+        this.showWelcome = true
+      }
+    },
+    setViewedWelcome () {
+      localStorage.setItem('welcome', true)
+      this.showWelcome = false
     }
   }
 }
