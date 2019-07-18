@@ -42,6 +42,9 @@
         <a href="https://github.com/AnthonyRonning/ShineWallet">
           <i class="fa fa-github"></i>
         </a>
+        <a href="https://app-center.openintents.org/appco/1465/comment">
+          <i class="fa fa-star"></i>
+        </a>
       </div>
 
       <div class="ml-auto">
