@@ -73,6 +73,25 @@
                 </div>
               </b-card>
             </b-col>
+
+            <!-- TODO retrieve pending channels -->
+
+            <!-- new channel box -->
+            <b-col sm="6" md="4">
+              <b-card header="Add New Channel">
+                <div slot="header">
+                  New Channel
+                </div>
+
+                <div class="text-center">
+                  <b-button
+                    class="active mt-3"
+                    pressed variant="success"
+                    aria-pressed="true"
+                    @click="openChannelModal = true">Add</b-button>
+                </div>
+              </b-card>
+            </b-col>
           </b-row>
         </b-card>
       </b-col>
@@ -94,71 +113,137 @@
       </b-col> -->
     </b-row>
 
+    <!-- channel modal -->
+    <b-modal
+      title="Open Channel"
+      size="lg"
+      v-model="openChannelModal">
+
+      <!-- Success Alert -->
+      <b-alert  v-model="showChannelSuccessAlert" variant="success" dismissible>
+        Channel request successful! Channel may take 5-10 minutes to show up in channel list.
+      </b-alert>
+      <!-- Failure Alert -->
+      <b-alert  v-model="showChannelFailureAlert" variant="danger" dismissible>
+        Failure opening channel: {{channelFailureReason}}
+      </b-alert>
+
+      <b-form>
+
+        <!-- pubkey -->
+        <b-form-group
+          description="Enter node pubkey."
+          label="Node Pubkey"
+          label-for="node info"
+          :label-cols="3">
+          <b-form-input id="invoice" type="text" v-model="channelConnectForm.pubKey"></b-form-input>
+        </b-form-group>
+
+        <!-- host -->
+        <b-form-group
+          description="Enter node host."
+          label="Node Host"
+          label-for="node info"
+          :label-cols="3">
+          <b-form-input id="invoice" type="text" v-model="channelConnectForm.host"></b-form-input>
+        </b-form-group>
+
+        <!-- Amount -->
+        <b-form-group
+          description="Enter Amount In SATS"
+          label="Amount"
+          label-for="amount"
+          :label-cols="3">
+          <b-form-input id="amount" type="text" v-model="channelConnectForm.amount"></b-form-input>
+        </b-form-group>
+      </b-form>
+
+      <div slot="modal-footer">
+        <b-button
+          variant="primary"
+          size="md"
+          class="btn btn-secondary"
+          style="margin: 5px;"
+          @click="openChannelModal=false"
+        >
+          Close
+        </b-button>
+        <b-button
+          variant="primary"
+          size="md"
+          class="btn btn-primary"
+          @click="openChannel"
+        >
+          Connect
+        </b-button>
+      </div>
+    </b-modal>
+
     <!-- showPayModal invoice modal -->
-      <b-modal
-        title="Pay Invoice"
-        size="lg"
-        v-model="payInvoiceModal">
+    <b-modal
+      title="Pay Invoice"
+      size="lg"
+      v-model="payInvoiceModal">
 
-        <!-- Success Alert -->
-        <b-alert  v-model="showSuccessAlert" variant="success" dismissible>
-          Payment Successful!
-        </b-alert>
-        <!-- Failure Alert -->
-        <b-alert  v-model="showFailureAlert" variant="danger" dismissible>
-          Failure sending payment: {{payFailureReason}}
-        </b-alert>
+      <!-- Success Alert -->
+      <b-alert  v-model="showSuccessAlert" variant="success" dismissible>
+        Payment Successful!
+      </b-alert>
+      <!-- Failure Alert -->
+      <b-alert  v-model="showFailureAlert" variant="danger" dismissible>
+        Failure sending payment: {{payFailureReason}}
+      </b-alert>
 
-        <b-form>
+      <b-form>
 
-          <!-- invoice -->
-          <b-form-group
-            description="Enter Bolt11 Invoice"
-            label="Invoice"
-            label-for="invoice"
-            :label-cols="3">
-            <b-form-input id="invoice" type="text" v-model="invoice"></b-form-input>
-          </b-form-group>
-        </b-form>
+        <!-- invoice -->
+        <b-form-group
+          description="Enter Bolt11 Invoice"
+          label="Invoice"
+          label-for="invoice"
+          :label-cols="3">
+          <b-form-input id="invoice" type="text" v-model="invoice"></b-form-input>
+        </b-form-group>
+      </b-form>
 
-        <div v-if="payReqInfo">
-          <b-card>
-            <p>Amount: {{payReqInfo.amount}} SATS</p>
-            <p>Destination: {{payReqInfo.destination}}</p>
-            <p>Description: {{payReqInfo.description}}</p>
-          </b-card>
-        </div>
+      <div v-if="payReqInfo">
+        <b-card>
+          <p>Amount: {{payReqInfo.amount}} SATS</p>
+          <p>Destination: {{payReqInfo.destination}}</p>
+          <p>Description: {{payReqInfo.description}}</p>
+        </b-card>
+      </div>
 
-        <div slot="modal-footer">
-          <b-button
-            variant="primary"
-            size="md"
-            class="btn btn-secondary"
-            style="margin: 5px;"
-            @click="payInvoiceModal=false"
-          >
-            Close
-          </b-button>
-          <b-button
-            v-if="payInvoiceModalOkTitle === 'Check Invoice'"
-            variant="primary"
-            size="md"
-            class="btn btn-primary"
-            @click="decodeInvoice"
-          >
-            {{payInvoiceModalOkTitle}}
-          </b-button>
-          <b-button
-            v-if="payInvoiceModalOkTitle === 'Pay Invoice'"
-            variant="primary"
-            size="md"
-            class="btn btn-primary"
-            @click="payInvoice"
-          >
-            {{payInvoiceModalOkTitle}}
-          </b-button>
-        </div>
-      </b-modal>
+      <div slot="modal-footer">
+        <b-button
+          variant="primary"
+          size="md"
+          class="btn btn-secondary"
+          style="margin: 5px;"
+          @click="payInvoiceModal=false"
+        >
+          Close
+        </b-button>
+        <b-button
+          v-if="payInvoiceModalOkTitle === 'Check Invoice'"
+          variant="primary"
+          size="md"
+          class="btn btn-primary"
+          @click="decodeInvoice"
+        >
+          {{payInvoiceModalOkTitle}}
+        </b-button>
+        <b-button
+          v-if="payInvoiceModalOkTitle === 'Pay Invoice'"
+          variant="primary"
+          size="md"
+          class="btn btn-primary"
+          @click="payInvoice"
+        >
+          {{payInvoiceModalOkTitle}}
+        </b-button>
+      </div>
+    </b-modal>
 
     <!-- createinvoice modal -->
     <b-modal
@@ -302,12 +387,20 @@ export default {
         ],
         payInvoiceModal: false,
         createInvoiceModal: false,
+        openChannelModal: false,
         invoice: '',
         payReqInfo: null,
         payInvoiceModalOkTitle: 'Check Invoice',
         showSuccessAlert: false,
         showFailureAlert: false,
         payFailureReason: '',
+        showChannelSuccessAlert: false,
+        showChannelFailureAlert: false,
+        channelFailureReason: '',
+        channelConnectForm: {
+          pubKeyAndHost: '',
+          amount: 0
+        },
         invoiceForm: {
           amount: 0,
           description: '',
@@ -357,6 +450,9 @@ export default {
         this.payInvoiceModalOkTitle = 'Check Invoice'
         this.showFailureAlert = false
         this.showSuccessAlert = false
+        this.showChannelFailureAlert = false
+        this.showChannelSuccessAlert = false
+        this.channelFailureReason = ''
         this.payFailureReason = ''
         this.createInvoiceModal = false
         this.payInvoiceModal = false
@@ -384,6 +480,7 @@ export default {
             this.walletInfo.channels = channels
           })
       },
+      // TODO retrieve pending channels
       retrieveWalletBalance () {
         console.log('retrieving walletbalance info')
         let ln = new Lightning(this.wallet)
@@ -448,6 +545,36 @@ export default {
             if (payReq) {
               console.log('payment request: ' + payReq)
               this.newPayReq = payReq
+            }
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+      },
+      openChannel () {
+        console.log('opening channel to: ' + this.channelConnectForm.pubKey)
+        this.channelConnectForm.pubKeyAndHost =
+          this.channelConnectForm.pubKey + '@' + this.channelConnectForm.host
+
+        let ln = new Lightning(this.wallet)
+        ln.connect(this.channelConnectForm)
+          .then((connectError) => {
+            if (connectError) {
+              console.log('connection error: ' + connectError)
+              this.channelFailureReason = connectError
+              this.showChannelFailureAlert = true
+            } else {
+              console.log('connection successful')
+              ln.openChannel(this.channelConnectForm)
+                .then((fundingTx) => {
+                  console.log('funding tx: ' + fundingTx)
+                  this.showChannelSuccessAlert = true
+                })
+                .catch((channelError) => {
+                  this.channelFailureReason = channelError
+                  this.showChannelFailureAlert = true
+                  console.log(channelError)
+                })
             }
           })
           .catch((error) => {

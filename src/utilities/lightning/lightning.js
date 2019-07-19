@@ -96,4 +96,26 @@ export class Lightning {
         throw new Error('Lightning Daemon not supported')
     }
   }
+
+  openChannel (channelReq) {
+    switch (this.wallet.type) {
+      case LND :
+        return Lnd.openChannel(this.wallet, channelReq)
+      case LIGHTNINGD :
+        return CLightning.openChannel(this.wallet, channelReq)
+      default :
+        throw new Error('Lightning Daemon not supported')
+    }
+  }
+
+  connect (channelReq) {
+    switch (this.wallet.type) {
+      case LND :
+        return Lnd.connect(this.wallet, channelReq)
+      case LIGHTNINGD :
+        return CLightning.connect(this.wallet, channelReq)
+      default :
+        throw new Error('Lightning Daemon not supported')
+    }
+  }
 }

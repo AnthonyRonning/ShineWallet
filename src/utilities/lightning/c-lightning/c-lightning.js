@@ -267,6 +267,34 @@ export class CLightning {
     return transactionList
   }
 
+  static openChannel (wallet, channelReq) {
+    console.log('clightning openChannel')
+    let command = 'fundchannel'
+    return this.rpcCall(wallet, command, [channelReq.pubKey, channelReq.amount])
+      .then(res => {
+        return res
+      })
+      .catch((error) => {
+        return error
+      })
+  }
+
+  static connect (wallet, channelReq) {
+    console.log('clightning pay')
+    let command = 'connect'
+    // seperate host and port
+    let hostPortArr = channelReq.host.split('/')
+    let host = hostPortArr[0]
+    let port = hostPortArr[1]
+
+    return this.rpcCall(wallet, command, [channelReq.pubKey, host, port])
+      .then(res => {
+      })
+      .catch((error) => {
+        return error
+      })
+  }
+
   static rpcCall (wallet, method, params = []) {
     console.log('making rpc call for ' + method)
     let accessKey = CLightningHelpers.makeAccessKey(wallet.username, wallet.password)

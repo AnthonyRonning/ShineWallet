@@ -96,6 +96,7 @@ export class Lnd {
         // console.log(body)
 
         if (body) {
+          // confirmed balance might be null, but unconfirmed has a balance
           return body.confirmed_balance
         }
       })
@@ -287,6 +288,57 @@ export class Lnd {
     })
 
     return transactionList
+  }
+
+  static openChannel (wallet, channelReq) {
+    console.log('lnd openChannel')
+
+    var requestBody = {
+      local_funding_amount: channelReq.amount,
+      node_pubkey_string: channelReq.pubKey
+    }
+
+    var options = this.createOptions(wallet, 'channels')
+    options.body = requestBody
+
+    return rp.post(options)
+      .then((body) => {
+        // console.log(body)
+
+        return body.funding_txid_str
+      })
+      .catch(function (error) {
+        console.log(error)
+        throw error
+      })
+  }
+
+  static connect (wallet, channelReq) {
+    console.log('lnd connect')
+
+    var requestBody = {
+      addr: {
+        pubkey: channelReq.pubKey,
+        host: channelReq.host
+      }
+    }
+
+    var options = this.createOptions(wallet, 'peers')
+    options.body = requestBody
+
+    return rp.post(options)
+      .then((body) => {
+      })
+      .catch(function (error) {
+        console.log(error)
+        console.log('error code: ' + error.error.code)
+        // this is an already connected error, is okay
+        if (error.error.code === 2) {
+          console.log('connect error code = 2, ignoring')
+          return
+        }
+        throw error
+      })
   }
 
   static createOptions (wallet, endpoint) {
