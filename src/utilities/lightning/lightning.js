@@ -118,4 +118,15 @@ export class Lightning {
         throw new Error('Lightning Daemon not supported')
     }
   }
+
+  closeChannel (channel) {
+    switch (this.wallet.type) {
+      case LND :
+        return Lnd.closeChannel(this.wallet, channel)
+      case LIGHTNINGD :
+        return CLightning.closeChannel(this.wallet, channel)
+      default :
+        throw new Error('Lightning Daemon not supported')
+    }
+  }
 }

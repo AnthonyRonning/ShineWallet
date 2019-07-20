@@ -16,7 +16,7 @@ export class CLightning {
       })
       .catch((error) => {
         console.log(error)
-        return error
+        throw error
       })
   }
 
@@ -37,7 +37,7 @@ export class CLightning {
         return this.listChannelsToChannelList(wallet, res, wallet.pubkey)
       })
       .catch((error) => {
-        return error
+        throw error
       })
   }
 
@@ -55,6 +55,7 @@ export class CLightning {
       newChannel.active = channel.active ? channel.active : false
       newChannel.capacity = parseInt(channel.satoshis)
       newChannel.private = channel.public ? !channel.public : true
+      newChannel.funding_tx = channel.funding_txid
 
       channelList.push(newChannel)
     })
@@ -101,7 +102,7 @@ export class CLightning {
         return this.walletBalanceToTotalAmount(wallet, res)
       })
       .catch((error) => {
-        return error
+        throw error
       })
   }
 
@@ -123,7 +124,7 @@ export class CLightning {
         return this.channelBalanceToTotalAmount(wallet, res)
       })
       .catch((error) => {
-        return error
+        throw error
       })
   }
 
@@ -145,7 +146,7 @@ export class CLightning {
         return this.decodePayReqToPayReq(res)
       })
       .catch((error) => {
-        return error
+        throw error
       })
   }
 
@@ -174,7 +175,7 @@ export class CLightning {
         }
       })
       .catch((error) => {
-        return error
+        throw error
       })
   }
 
@@ -187,7 +188,7 @@ export class CLightning {
         return res.bolt11
       })
       .catch((error) => {
-        return error
+        throw error
       })
   }
 
@@ -215,7 +216,7 @@ export class CLightning {
         return this.listInvoicesToTransactionList(res.invoices)
       })
       .catch((error) => {
-        return error
+        throw error
       })
   }
 
@@ -246,7 +247,7 @@ export class CLightning {
         return this.listPaymentsToTransactionList(res.payments)
       })
       .catch((error) => {
-        return error
+        throw error
       })
   }
 
@@ -275,12 +276,12 @@ export class CLightning {
         return res
       })
       .catch((error) => {
-        return error
+        throw error
       })
   }
 
   static connect (wallet, channelReq) {
-    console.log('clightning pay')
+    console.log('clightning connect')
     let command = 'connect'
     // seperate host and port
     let hostPortArr = channelReq.host.split('/')
@@ -291,7 +292,19 @@ export class CLightning {
       .then(res => {
       })
       .catch((error) => {
-        return error
+        throw error
+      })
+  }
+
+  static closeChannel (wallet, channel) {
+    console.log('clightning close')
+    let command = 'close'
+
+    return this.rpcCall(wallet, command, [channel.remote_pubkey])
+      .then(res => {
+      })
+      .catch((error) => {
+        throw error
       })
   }
 

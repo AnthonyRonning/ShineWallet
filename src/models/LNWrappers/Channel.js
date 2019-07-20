@@ -9,5 +9,6 @@ export class Channel {
     this.fee = 0
     this.private = false
     this.color = '#000000'
+    this.funding_tx = '' // tx_id for c-lightning, channel_point for lnd
   }
 }

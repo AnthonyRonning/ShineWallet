@@ -69,7 +69,8 @@
                     v-if="channel.active"
                     class="active mt-3"
                     pressed variant="danger"
-                    aria-pressed="true">Close Channel</b-button>
+                    aria-pressed="true"
+                    @click="closeChannelCheck(channel)">Close Channel</b-button>
                 </div>
               </b-card>
             </b-col>
@@ -306,6 +307,48 @@
       </div>
     </b-modal>
 
+    <!-- closeChannel modal -->
+    <b-modal
+      title="Close Channel"
+      size="lg"
+      v-model="showCloseChannelModel">
+
+      <!-- Success Alert -->
+      <b-alert  v-model="showClosingSuccessAlert" variant="success" dismissible>
+        Channel closing successful.
+      </b-alert>
+      <!-- Failure Alert -->
+      <b-alert  v-model="showClosingFailureAlert" variant="danger" dismissible>
+        Failure closing channel: {{closingChannelFailureReason}}
+      </b-alert>
+      <!-- Info Alert -->
+      <b-alert  v-model="showClosingInfoAlert" variant="info" dismissible>
+        Closing... may take up to 60 seconds.
+      </b-alert>
+
+      Are you sure?
+
+      <div slot="modal-footer">
+        <b-button
+          variant="primary"
+          size="md"
+          class="btn btn-secondary"
+          style="margin: 5px;"
+          @click="showCloseChannelModel = false"
+        >
+          No
+        </b-button>
+        <b-button
+          variant="primary"
+          size="md"
+          class="btn btn-primary"
+          @click="closeChannel(channelToClose)"
+        >
+          Yes
+        </b-button>
+      </div>
+    </b-modal>
+
     <!-- fab -->
     <div>
       <fab :actions="fabActions"
@@ -397,6 +440,12 @@ export default {
         showChannelSuccessAlert: false,
         showChannelFailureAlert: false,
         channelFailureReason: '',
+        showCloseChannelModel: false,
+        channelToClose: null,
+        showClosingSuccessAlert: false,
+        showClosingFailureAlert: false,
+        showClosingInfoAlert: false,
+        closingChannelFailureReason: '',
         channelConnectForm: {
           pubKeyAndHost: '',
           amount: 0
@@ -460,6 +509,12 @@ export default {
         this.invoiceForm.description = ''
         this.invoiceForm.label = ''
         this.newPayReq = null
+        this.channelToClose = null
+        this.showCloseChannelModel = false
+        this.showClosingSuccessAlert = false
+        this.showClosingFailureAlert = false
+        this.showClosingInfoAlert = false
+        this.closingChannelFailureReason = ''
       },
       retrieveWalletInfo () {
         console.log('retrieving wallet info')
@@ -578,7 +633,34 @@ export default {
             }
           })
           .catch((error) => {
+            this.channelFailureReason = error
+            this.showChannelFailureAlert = true
             console.log(error)
+          })
+      },
+      closeChannelCheck (channel) {
+        console.log('attempting to close channel: ' + channel.alias)
+        console.log(channel)
+        this.channelToClose = channel
+        this.showCloseChannelModel = true
+        console.log(this.channelToClose)
+      },
+      closeChannel () {
+        console.log('closing channel to: ' + this.channelToClose.alias)
+        console.log(this.channelToClose)
+
+        this.showClosingInfoAlert = true
+
+        let ln = new Lightning(this.wallet)
+        ln.closeChannel(this.channelToClose)
+          .then(() => {
+            console.log('closing successful')
+            this.showClosingSuccessAlert = true
+          })
+          .catch((error) => {
+            console.log(error)
+            this.showClosingFailureAlert = true
+            this.closingChannelFailureReason = error
           })
       },
       showPayModal () {

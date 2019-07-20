@@ -61,6 +61,7 @@ export class Lnd {
       newChannel.remote_balance = channel.remote_balance ? parseInt(channel.remote_balance) : 0
       newChannel.fee = parseInt(channel.commit_fee)
       newChannel.private = channel.private ? channel.private : false
+      newChannel.funding_tx = channel.channel_point
 
       channelList.push(newChannel)
     })
@@ -337,6 +338,25 @@ export class Lnd {
           console.log('connect error code = 2, ignoring')
           return
         }
+        throw error
+      })
+  }
+
+  static closeChannel (wallet, channel) {
+    console.log('lnd close')
+
+    // seperate tx_id and index
+    let idAndIndex = channel.funding_tx.split(':')
+    let id = idAndIndex[0]
+    let index = idAndIndex[1]
+
+    var options = this.createOptions(wallet, 'channels/' + id + '/' + index)
+
+    return rp.delete(options)
+      .then(() => {
+        return
+      })
+      .catch(function (error) {
         throw error
       })
   }
