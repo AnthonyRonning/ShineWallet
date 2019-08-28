@@ -21,14 +21,17 @@ export class Wallet extends Model {
       activeChannels: 0,
       peers: 0,
       pubkey: null,
-      short_channel_id: null
+      short_channel_id: null,
+      purchased: false,
+      purchasedNodeId: null
     }
   }
 
   mutations () {
     return {
       fileLocation: (fileLocation) => fileLocation + this.id + '.json',
-      testnet: Boolean
+      testnet: Boolean,
+      purchased: Boolean
     }
   }
 
@@ -72,6 +75,8 @@ export class Wallet extends Model {
           this.peers = wallet.peers
           this.pubkey = wallet.pubkey
           this.short_channel_id = wallet.short_channel_id
+          this.purchased = wallet.purchased
+          this.purchasedNodeId = wallet.purchasedNodeId
         }
       })
   }

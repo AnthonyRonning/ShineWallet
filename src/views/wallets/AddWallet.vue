@@ -40,8 +40,10 @@
             </b-form-group>
 
             <!-- todo add required fields -->
+
             <!-- host & port -->
             <b-form-group
+              v-if="walletForm.type === 'LND' || walletForm.type === 'C-Lightning'"
               description="Enter the host & port of your node (ex. https://1.1.1.1:1111)"
               label="Host & Port"
               label-for="hostAndPort"
@@ -105,6 +107,25 @@
               :horizontal="true">
               OR
               <b-form-input id="accessKey" type="password" v-model="walletForm.accessKey"></b-form-input>
+            </b-form-group>
+
+
+            <!-- Purchase Form -->
+            <!-- Months -->
+            <b-form-group
+              v-if="walletForm.type === 'Purchase'"
+              description="How long would you like to prepay?"
+              label="Amount of Months"
+              label-for="Amount of Months"
+              :label-cols="3"
+              :horizontal="true">
+              <b-form-radio-group id="monthsRadio"
+                                  :plain="true"
+                                  :options=purchaseMonths
+                                  checked="1"
+                                  stacked
+                                  v-model="walletForm.months">
+              </b-form-radio-group>
             </b-form-group>
 
             <!-- form footer -->
@@ -179,6 +200,7 @@
   import {Wallet} from '../../models/Wallet'
   import {Lightning} from '../../utilities/lightning/lightning'
   import {WalletList} from '../../models/collections/WalletList'
+  import axios from 'axios'
 
 export default {
     name: 'addwallet',
@@ -188,21 +210,26 @@ export default {
         walletOptions: [
           {text: 'LND', value: 'LND', disabled: false},
           {text: 'C-Lightning via Spark', value: 'C-Lightning', disabled: false},
-          {text: 'Buy a node from ShineWallet (Coming soon)', value: 'TBD', disabled: true}
+          {text: 'Buy a node from ShineWallet', value: 'Purchase', disabled: false}
         ],
         walletForm: {
           type: 'LND',
           hostAndPort: '',
           macaroon: null,
           username: '',
-          password: ''
+          password: '',
+          months: 1
         },
         tempMacaroonFile: null,
         showSuccessAlert: false,
         showFailureAlert: false,
         failureReason: '',
         walletList: new WalletList(),
-        walletMoreInfoModal: false
+        walletMoreInfoModal: false,
+        purchaseMonths: [
+          {text: '1', value: 1},
+          {text: '3', value: 3}
+        ]
       }
     },
     watch: {
@@ -223,7 +250,12 @@ export default {
           ' Type: ' + this.walletForm.type +
           ' Host: ' + this.walletForm.hostAndPort)
 
-        this.testConnection()
+        if (this.walletForm.type === 'Purchase') {
+          // todo check if they can purchase
+          this.purchaseNewNode()
+        } else {
+          this.testConnection()
+        }
       },
       testConnection () {
         console.log('testing lnd connection')
@@ -268,6 +300,27 @@ export default {
           this.failureReason = error.message
           this.showFailureAlert = true
         })
+      },
+      async purchaseNewNode () {
+        console.log('creating axios client w/ url: ' + process.env.VUE_APP_BTCPAY_URL)
+        const axiosClient = axios.create({
+          baseURL: process.env.VUE_APP_SHINE_NODE_MANAGER_URL,
+          timeout: 25000,
+          responseType: 'json',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+
+        const purchaseReq = {
+          'months': this.walletForm.months
+        }
+
+        const response = await axiosClient.post('/nodes/buy', purchaseReq)
+        console.log(response)
+        const invoiceId = response.data.invoiceId
+        console.log(invoiceId)
+        window.btcpay.showInvoice(invoiceId)
       },
       convertAdminMacaroonToHex () {
         var callback = this.setFile
