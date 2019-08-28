@@ -15,6 +15,7 @@ export class Wallet extends Model {
       macaroon: null,
       username: null,
       password: null,
+      accessKey: null,
       fileLocation: 'wallets/',
       testnet: false,
       activeChannels: 0,
@@ -64,6 +65,7 @@ export class Wallet extends Model {
           this.macaroon = wallet.macaroon
           this.username = wallet.username
           this.password = wallet.password
+          this.accessKey = wallet.accessKey
           this.fileLocation = wallet.fileLocation
           this.testnet = wallet.testnet
           this.activeChannels = wallet.activeChannels

@@ -39,6 +39,7 @@
               </a>
             </b-form-group>
 
+            <!-- todo add required fields -->
             <!-- host & port -->
             <b-form-group
               description="Enter the host & port of your node (ex. https://1.1.1.1:1111)"
@@ -91,6 +92,19 @@
               :label-cols="3"
               :horizontal="true">
               <b-form-input id="password" type="password" v-model="walletForm.password"></b-form-input>
+            </b-form-group>
+
+
+            <!-- access key -->
+            <b-form-group
+              v-if="walletForm.type === 'C-Lightning'"
+              description="Access Key"
+              label="Access Key"
+              label-for="Access Key"
+              :label-cols="3"
+              :horizontal="true">
+              OR
+              <b-form-input id="accessKey" type="password" v-model="walletForm.accessKey"></b-form-input>
             </b-form-group>
 
             <!-- form footer -->
@@ -230,6 +244,7 @@ export default {
                 macaroon: this.walletForm.macaroon,
                 username: this.walletForm.username,
                 password: this.walletForm.password,
+                accessKey: this.walletForm.accessKey,
                 testnet: body.testnet
               })
 
