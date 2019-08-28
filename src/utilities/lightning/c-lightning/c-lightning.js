@@ -310,8 +310,10 @@ export class CLightning {
 
   static rpcCall (wallet, method, params = []) {
     console.log('making rpc call for ' + method)
-    let accessKey = CLightningHelpers.makeAccessKey(wallet.username, wallet.password)
-    return fetch(CLightningHelpers.normalizeURL(wallet.hostAndPort) + '/rpc?access-key=' + accessKey, {
+    let accessKey = wallet.accessKey ? wallet.accessKey
+      : CLightningHelpers.makeAccessKey(wallet.username, wallet.password)
+
+    return fetch(wallet.hostAndPort + '/rpc?access-key=' + accessKey, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

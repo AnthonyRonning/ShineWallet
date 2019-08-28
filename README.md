@@ -18,6 +18,4 @@ npm run build
 
 ```
 
-More documentation coming soon! 
-
-
+More documentation coming soon!
